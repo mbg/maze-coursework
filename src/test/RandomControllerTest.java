@@ -5,7 +5,7 @@ import uk.ac.warwick.dcs.maze.generators.PrimGenerator;
 import uk.ac.warwick.dcs.maze.logic.RobotImpl;
 
 /*
-    This class contains unit tests for
+    This class contains unit tests for the RandomController class.
 */
 public class RandomControllerTest {
     /*
