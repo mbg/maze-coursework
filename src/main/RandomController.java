@@ -23,22 +23,22 @@ public class RandomController implements IRobotController {
 
             // turn into one of the four directions, as determined
             // by the random number that was generated:
-            // 0: north
-            // 1: east
-            // 2: south
-            // 3: west
+            // 0: ahead
+            // 1: left
+            // 2: right
+            // 3: behind
             switch (rand) {
             case 0:
-                robot.setHeading(IRobot.NORTH);
+                robot.face(IRobot.AHEAD);
                 break;
             case 1:
-                robot.setHeading(IRobot.EAST);
+                robot.face(IRobot.LEFT);
                 break;
             case 2:
-                robot.setHeading(IRobot.SOUTH);
+                robot.face(IRobot.RIGHT);
                 break;
             case 3:
-                robot.setHeading(IRobot.WEST);
+                robot.face(IRobot.BEHIND);
                 break;
             }
 
