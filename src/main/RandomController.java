@@ -1,5 +1,7 @@
 import uk.ac.warwick.dcs.maze.logic.*;
 import java.awt.Point;
+import java.util.concurrent.ThreadLocalRandom;
+import java.util.*;
 
 public class RandomController implements IRobotController {
     // the robot in the maze
@@ -17,31 +19,30 @@ public class RandomController implements IRobotController {
 
         // loop while we haven't found the exit and the agent
         // has not been interrupted
+        ThreadLocalRandom random = ThreadLocalRandom.current();
+        int rand = 0;
+        int heading = this.robot.getHeading();
+
         while(!robot.getLocation().equals(robot.getTargetLocation()) && active) {
-            // generate a random number between 0-3 (inclusive)
-            int rand = (int)Math.round(Math.random()*3);
+            rand = random.nextInt(8);
 
-            // turn into one of the four directions, as determined
-            // by the random number that was generated:
-            // 0: ahead
-            // 1: left
-            // 2: right
-            // 3: behind
-            switch (rand) {
-            case 0:
-                robot.face(IRobot.AHEAD);
-                break;
-            case 1:
-                robot.face(IRobot.LEFT);
-                break;
-            case 2:
-                robot.face(IRobot.RIGHT);
-                break;
-            case 3:
-                robot.face(IRobot.BEHIND);
-                break;
+            if(rand == 7 || robot.look(IRobot.AHEAD) == IRobot.WALL) {
+                ArrayList<Integer> directions = new ArrayList<Integer>();
+
+                if(robot.look(IRobot.AHEAD) != IRobot.WALL) directions.add(IRobot.AHEAD);
+                if(robot.look(IRobot.LEFT) != IRobot.WALL) directions.add(IRobot.LEFT);
+                if(robot.look(IRobot.RIGHT) != IRobot.WALL) directions.add(IRobot.RIGHT);
+                if(robot.look(IRobot.BEHIND) != IRobot.WALL) directions.add(IRobot.BEHIND);
+
+                rand = random.nextInt(directions.size());
+
+                int direction = directions.get(rand);
+                robot.face(direction);
+                robot.getLogger().log(direction);
             }
-
+            else {
+                robot.getLogger().log(IRobot.AHEAD);
+            }
             // move one step into the direction the robot is facing
             robot.advance();
 

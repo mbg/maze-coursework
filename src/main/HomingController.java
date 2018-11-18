@@ -1,5 +1,7 @@
 import uk.ac.warwick.dcs.maze.logic.*;
 import java.awt.Point;
+import java.util.*;
+import java.util.concurrent.ThreadLocalRandom;
 
 public class HomingController implements IRobotController {
     // the robot in the maze
@@ -15,37 +17,25 @@ public class HomingController implements IRobotController {
     public void start() {
         this.active = true;
 
-        int direction;
-        int randno;
+        while(!robot.getLocation().equals(robot.getTargetLocation()) && active) {
+            // look in the direction in which we should go
+            robot.setHeading(this.determineHeading());
 
-        direction = robot.look(IRobot.EAST);
-
-        do {
-            randno = (int) Math.round(Math.random()*3);
-
-            // change the direction based on the random number
-            if (randno == 0)
-                direction = IRobot.LEFT;
-            else if (randno == 1)
-                direction = IRobot.RIGHT;
-            else if (randno == 2)
-                direction = IRobot.BEHIND;
-            else
-                direction = IRobot.AHEAD;
+            // move one step into the direction the robot is facing
+            robot.advance();
 
             // wait for a while if we are supposed to
             if (delay > 0)
                 robot.sleep(delay);
-        } while (robot.look(IRobot.AHEAD)==IRobot.WALL);
-
-        robot.face(direction);  /* Face the direction */
+        }
     }
 
     // this method returns 1 if the target is north of the
     // robot, -1 if the target is south of the robot, or
     // 0 if otherwise.
     public byte isTargetNorth() {
-        // TODO: Implement for Task 5
+        if (robot.getLocation().y < robot.getTargetLocation().y) return -1;
+        if (robot.getLocation().y > robot.getTargetLocation().y) return 1;
         return 0;
     }
 
@@ -53,23 +43,65 @@ public class HomingController implements IRobotController {
     // robot, -1 if the target is west of the robot, or
     // 0 if otherwise.
     public byte isTargetEast() {
-        // TODO: Implement for Task 5
+        if (robot.getLocation().x < robot.getTargetLocation().x) return 1;
+        if (robot.getLocation().x > robot.getTargetLocation().x) return -1;
         return 0;
     }
 
     // this method causes the robot to look to the absolute
     // direction that is specified as argument and returns
     // what sort of square there is
-    public int lookHeading(int absoluteDirection) {
-        // TODO: Implement for Task 5
-        return IRobot.WALL;
+    public int lookHeading(int heading) {
+        switch(robot.getHeading()) {
+            case IRobot.NORTH:
+                if (heading == IRobot.NORTH) return robot.look(IRobot.AHEAD);
+                if (heading == IRobot.EAST) return robot.look(IRobot.RIGHT);
+                if (heading == IRobot.SOUTH) return robot.look(IRobot.BEHIND);
+                if (heading == IRobot.WEST) return robot.look(IRobot.LEFT);
+            case IRobot.WEST:
+                if (heading == IRobot.NORTH) return robot.look(IRobot.RIGHT);
+                if (heading == IRobot.EAST) return robot.look(IRobot.BEHIND);
+                if (heading == IRobot.SOUTH) return robot.look(IRobot.LEFT);
+                if (heading == IRobot.WEST) return robot.look(IRobot.AHEAD);
+            case IRobot.SOUTH:
+                if (heading == IRobot.NORTH) return robot.look(IRobot.BEHIND);
+                if (heading == IRobot.EAST) return robot.look(IRobot.LEFT);
+                if (heading == IRobot.SOUTH) return robot.look(IRobot.AHEAD);
+                if (heading == IRobot.WEST) return robot.look(IRobot.RIGHT);
+            case IRobot.EAST:
+                if (heading == IRobot.NORTH) return robot.look(IRobot.LEFT);
+                if (heading == IRobot.EAST) return robot.look(IRobot.AHEAD);
+                if (heading == IRobot.SOUTH) return robot.look(IRobot.RIGHT);
+                if (heading == IRobot.WEST) return robot.look(IRobot.BEHIND);
+        }
+        return -1;
     }
 
     // this method determines the heading in which the robot
     // should head next to move closer to the target
     public int determineHeading() {
-        // TODO: Implement for Task 5
-        return IRobot.NORTH;
+        ArrayList<Integer> options = new ArrayList<Integer>();
+
+        if(this.isTargetNorth() > 0 && this.lookHeading(IRobot.NORTH) != IRobot.WALL) options.add(IRobot.NORTH);
+        if(this.isTargetNorth() < 0 && this.lookHeading(IRobot.SOUTH) != IRobot.WALL) options.add(IRobot.SOUTH);
+        if(this.isTargetEast() > 0 && this.lookHeading(IRobot.EAST) != IRobot.WALL) options.add(IRobot.EAST);
+        if(this.isTargetEast() < 0 && this.lookHeading(IRobot.WEST) != IRobot.WALL) options.add(IRobot.WEST);
+
+        if(options.size() == 0) {
+            if(this.lookHeading(IRobot.NORTH) != IRobot.WALL) options.add(IRobot.NORTH);
+            if(this.lookHeading(IRobot.SOUTH) != IRobot.WALL) options.add(IRobot.SOUTH);
+            if(this.lookHeading(IRobot.EAST) != IRobot.WALL) options.add(IRobot.EAST);
+            if(this.lookHeading(IRobot.WEST) != IRobot.WALL) options.add(IRobot.WEST);
+        }
+
+        if(options.size() != 0) {
+            ThreadLocalRandom random = ThreadLocalRandom.current();
+
+            Integer result = options.get(random.nextInt(options.size()));
+            return result;
+        }
+
+        return IRobot.CENTRE;
     }
 
     // this method returns a description of this controller
